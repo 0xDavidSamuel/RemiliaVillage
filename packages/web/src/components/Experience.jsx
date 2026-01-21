@@ -1,8 +1,11 @@
 import { ContactShadows, Environment } from "@react-three/drei";
 import { Player } from "./Player";
 import { CameraManager } from "./CameraManager";
+import { usePlayerStore } from "../store";
 
 export function Experience() {
+  const selectedPlayer = usePlayerStore((state) => state.selectedPlayer);
+
   return (
     <>
       <CameraManager />
@@ -14,7 +17,7 @@ export function Experience() {
         blur={1.5}
         far={1}
       />
-      <Player position={[0, 0, 0]} />
+      <Player key={selectedPlayer?.id} position={[0, 0, 0]} />
     </>
   );
 }

@@ -45,17 +45,18 @@ export function Player(props) {
     actions["mixamo.com"]?.play();
   }, [actions]);
 
-  // Debug: log materials
+  // Debug: log nodes and materials
   useEffect(() => {
     console.log("[Player] Model:", modelPath);
+    console.log("[Player] Nodes:", Object.keys(nodes));
     console.log("[Player] Materials:", Object.keys(materials));
-  }, [materials, modelPath]);
+  }, [nodes, materials, modelPath]);
 
-  // Find the main mesh node (adjust based on your GLB structure)
-  const meshNode = nodes.Mesh10 || Object.values(nodes).find(n => n.isSkinnedMesh);
+  // Find ALL skinned meshes in the model
+  const skinnedMeshes = Object.values(nodes).filter(n => n.isSkinnedMesh);
 
-  if (!meshNode) {
-    console.warn("[Player] No skinned mesh found in model");
+  if (skinnedMeshes.length === 0) {
+    console.warn("[Player] No skinned meshes found in model");
     return null;
   }
 
@@ -64,12 +65,15 @@ export function Player(props) {
       <group ref={group} dispose={null}>
         <group name="Scene">
           <group name="Armature" scale={0.01}>
-            <skinnedMesh
-              name={meshNode.name}
-              geometry={meshNode.geometry}
-              material={meshNode.material}
-              skeleton={meshNode.skeleton}
-            />
+            {skinnedMeshes.map((mesh) => (
+              <skinnedMesh
+                key={mesh.name}
+                name={mesh.name}
+                geometry={mesh.geometry}
+                material={mesh.material}
+                skeleton={mesh.skeleton}
+              />
+            ))}
             <primitive object={nodes.mixamorigHips} />
           </group>
         </group>
