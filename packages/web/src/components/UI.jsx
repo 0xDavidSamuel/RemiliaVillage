@@ -130,7 +130,7 @@ const SignInButton = () => {
     if (isUnrealWebview()) {
       const currentUrl = window.location.origin + window.location.pathname;
       const redirectUri = new URLSearchParams(window.location.search).get('redirect_uri') || '';
-      const loginUrl = `https://remilia-village-login.vercel.app?returnTo=${encodeURIComponent(currentUrl)}&redirect_uri=${encodeURIComponent(redirectUri)}`;
+      const loginUrl = `https://milady-city-login.vercel.app?returnTo=${encodeURIComponent(currentUrl)}&redirect_uri=${encodeURIComponent(redirectUri)}`;
       window.location.href = loginUrl;
       return;
     }

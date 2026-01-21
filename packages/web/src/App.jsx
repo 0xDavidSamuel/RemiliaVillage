@@ -4,13 +4,26 @@ import { DEFAULT_CAMERA_POSITION } from "./components/CameraManager";
 import { Experience } from "./components/Experience";
 import { UI } from "./components/UI";
 import { usePlayerStore } from "./store";
+import { initWeb3Auth } from "./lib/web3auth";
 
 function App() {
   const initialize = usePlayerStore((state) => state.initialize);
+  const setWallet = usePlayerStore((state) => state.setWallet);
 
   useEffect(() => {
     initialize();
-  }, [initialize]);
+    initWeb3Auth();
+
+    // Check for wallet from redirect (Unreal flow)
+    const params = new URLSearchParams(window.location.search);
+    const wallet = params.get('wallet');
+    if (wallet) {
+      console.log("[App] Wallet from redirect:", wallet);
+      setWallet(wallet);
+      // Clean URL
+      window.history.replaceState({}, '', window.location.pathname);
+    }
+  }, [initialize, setWallet]);
 
   return (
     <div className="flex flex-col md:flex-row h-screen bg-[#130f30] overflow-hidden">

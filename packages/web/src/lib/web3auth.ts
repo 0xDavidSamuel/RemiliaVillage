@@ -73,10 +73,10 @@ export async function getWalletAddress(): Promise<string | null> {
   if (!web3auth.provider) return null;
 
   try {
-    const accounts = await web3auth.provider.request<string[]>({
+    const accounts = await web3auth.provider.request({
       method: "eth_accounts",
     });
-    return accounts?.[0] || null;
+    return (accounts as string[])?.[0] || null;
   } catch (error) {
     console.error("[Web3Auth] Failed to get wallet address:", error);
     return null;

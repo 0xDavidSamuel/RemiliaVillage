@@ -229,7 +229,7 @@ interface PlayerState {
   */
 }
 
-export const usePlayerStore = create<PlayerState>((set, get) => ({
+export const usePlayerStore = create<PlayerState>((set, _get) => ({
   // ============================================================================
   // DEMO STATE
   // ============================================================================
