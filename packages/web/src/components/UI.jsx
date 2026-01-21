@@ -47,39 +47,44 @@ const PlayerSelect = () => {
 };
 
 // ============================================================================
-// GREYED OUT CREATOR (Coming Soon)
+// GREYED OUT CREATOR (Coming Soon) - Shows real UI but disabled
 // ============================================================================
 
 const DisabledCreator = () => {
-  const categories = ["Hair", "Eyes", "Mouth", "Outfit", "Accessories"];
+  const categories = ["Hair", "Eyes", "Mouth", "Brows", "Skin", "Hat", "Shirt", "Glasses", "Face Deco", "Neck"];
 
   return (
-    <div className="relative">
-      {/* Overlay */}
-      <div className="absolute inset-0 bg-gray-900/80 backdrop-blur-sm z-10 flex items-center justify-center rounded-xl">
-        <div className="text-center">
-          <p className="text-indigo-400 font-bold text-lg">Full Customization</p>
-          <p className="text-gray-400 text-sm">Coming in v1.0</p>
-        </div>
+    <div className="opacity-40 pointer-events-none select-none">
+      {/* Category tabs */}
+      <div className="flex flex-wrap gap-2 mb-4">
+        {categories.map((cat) => (
+          <button
+            key={cat}
+            className="px-3 py-1.5 rounded-lg text-sm font-medium bg-gray-800 text-gray-400"
+          >
+            {cat}
+          </button>
+        ))}
       </div>
 
-      {/* Greyed content */}
-      <div className="opacity-30 pointer-events-none p-4">
-        <div className="flex flex-wrap gap-2 mb-4">
-          {categories.map((cat) => (
+      {/* Fake asset grid */}
+      <div className="flex gap-2 flex-wrap">
+        {[1, 2, 3, 4, 5, 6].map((i) => (
+          <div
+            key={i}
+            className="w-14 h-14 md:w-16 md:h-16 rounded-lg bg-gray-800 border-2 border-gray-600"
+          />
+        ))}
+      </div>
+
+      {/* Color palette */}
+      <div className="mt-4">
+        <div className="flex gap-2">
+          {['#f5c6a5', '#e8b094', '#d4956b', '#a57449', '#6b4423'].map((color) => (
             <div
-              key={cat}
-              className="px-3 py-1.5 rounded-lg text-sm font-medium bg-gray-800 text-gray-400"
-            >
-              {cat}
-            </div>
-          ))}
-        </div>
-        <div className="flex gap-2 flex-wrap">
-          {[1, 2, 3, 4, 5, 6].map((i) => (
-            <div
-              key={i}
-              className="w-14 h-14 md:w-16 md:h-16 rounded-lg bg-gray-800 border-2 border-gray-600"
+              key={color}
+              className="w-8 h-8 rounded-lg border-2 border-transparent"
+              style={{ backgroundColor: color }}
             />
           ))}
         </div>
