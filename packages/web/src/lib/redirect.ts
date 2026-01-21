@@ -1,4 +1,4 @@
-const UNREAL_SESSION_KEY = 'remiliavillage_from_unreal';
+const UNREAL_SESSION_KEY = 'miladycity_from_unreal';
 
 // Check if we're being loaded from Unreal webview
 export function isUnrealWebview(): boolean {
@@ -27,13 +27,13 @@ export function getRedirectUri(): string | null {
   if (fromUrl) {
     // Store for later
     try {
-      sessionStorage.setItem('remiliavillage_redirect_uri', fromUrl);
+      sessionStorage.setItem('miladycity_redirect_uri', fromUrl);
     } catch (e) {}
     return fromUrl;
   }
   // Check sessionStorage
   try {
-    return sessionStorage.getItem('remiliavillage_redirect_uri');
+    return sessionStorage.getItem('miladycity_redirect_uri');
   } catch (e) {
     return null;
   }
@@ -53,7 +53,7 @@ export function redirectToUnreal(walletAddress: string, playerId?: string): void
   // Clear session data
   try {
     sessionStorage.removeItem(UNREAL_SESSION_KEY);
-    sessionStorage.removeItem('remiliavillage_redirect_uri');
+    sessionStorage.removeItem('miladycity_redirect_uri');
   } catch (e) {}
   window.location.href = url;
 }
