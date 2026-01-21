@@ -14,13 +14,23 @@ function App() {
     initialize();
     initWeb3Auth();
 
-    // Check for wallet from redirect (Unreal flow)
+    // Check for wallet and redirect_uri from URL (Unreal flow)
     const params = new URLSearchParams(window.location.search);
     const wallet = params.get('wallet');
+    const redirectUri = params.get('redirect_uri');
+
+    // Store redirect_uri in sessionStorage before cleaning URL
+    if (redirectUri) {
+      try {
+        sessionStorage.setItem('miladycity_redirect_uri', redirectUri);
+        sessionStorage.setItem('miladycity_from_unreal', 'true');
+      } catch (e) {}
+    }
+
     if (wallet) {
       console.log("[App] Wallet from redirect:", wallet);
       setWallet(wallet);
-      // Clean URL
+      // Clean URL but redirect_uri is now in sessionStorage
       window.history.replaceState({}, '', window.location.pathname);
     }
   }, [initialize, setWallet]);
