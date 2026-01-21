@@ -11,7 +11,6 @@ export function isUnrealWebview(): boolean {
     } catch (e) {}
     return true;
   }
-
   // Check sessionStorage (for after URL cleanup)
   try {
     return sessionStorage.getItem(UNREAL_SESSION_KEY) === 'true';
@@ -32,7 +31,6 @@ export function getRedirectUri(): string | null {
     } catch (e) {}
     return fromUrl;
   }
-
   // Check sessionStorage
   try {
     return sessionStorage.getItem('remiliavillage_redirect_uri');
@@ -41,25 +39,21 @@ export function getRedirectUri(): string | null {
   }
 }
 
-// Redirect back to Unreal with wallet and optional character ID
-export function redirectToUnreal(walletAddress: string, characterId?: string): void {
+// Redirect back to Unreal with wallet and optional player ID
+export function redirectToUnreal(walletAddress: string, playerId?: string): void {
   const redirectUri = getRedirectUri();
-
   if (!redirectUri) {
     console.error("[redirect] No redirect URI found");
     return;
   }
-
   let url = `${redirectUri}?wallet=${walletAddress}`;
-  if (characterId) {
-    url += `&character=${characterId}`;
+  if (playerId) {
+    url += `&player=${playerId}`;
   }
-
   // Clear session data
   try {
     sessionStorage.removeItem(UNREAL_SESSION_KEY);
     sessionStorage.removeItem('remiliavillage_redirect_uri');
   } catch (e) {}
-
   window.location.href = url;
 }
