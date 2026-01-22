@@ -4,19 +4,20 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/GameModeBase.h"
+#include "AuthService.h"
 #include "MiladyCityGameMode.generated.h"
 
-UCLASS(abstract)
-class AMiladyCityGameMode : public AGameModeBase
+UCLASS(Blueprintable)
+class MILADYCITY_API AMiladyCityGameMode : public AGameModeBase
 {
-    GENERATED_BODY()
+	GENERATED_BODY()
 
 public:
-    AMiladyCityGameMode();
+	AMiladyCityGameMode();
 
 protected:
-    virtual void BeginPlay() override;
+	virtual void BeginPlay() override;
 
-    UFUNCTION()
-    void OnAuthComplete(bool bSuccess, const FString& WalletAddress);
+	UFUNCTION()
+	void OnAuthComplete(bool bSuccess, const FString& WalletAddress, const FPlayerData& PlayerData);
 };

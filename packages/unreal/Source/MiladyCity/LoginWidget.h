@@ -14,28 +14,28 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnLoginRedirect, const FString&, Re
 UCLASS()
 class MILADYCITY_API ULoginWidget : public UUserWidget
 {
-    GENERATED_BODY()
+	GENERATED_BODY()
 
 public:
-    // Call this to start the login flow
-    UFUNCTION(BlueprintCallable, Category = "Login")
-    void LoadLoginURL(const FString& URL);
+	// Call this to start the login flow
+	UFUNCTION(BlueprintCallable, Category = "Login")
+	void LoadLoginURL(const FString& URL);
 
-    // Close the widget
-    UFUNCTION(BlueprintCallable, Category = "Login")
-    void CloseLogin();
+	// Close the widget
+	UFUNCTION(BlueprintCallable, Category = "Login")
+	void CloseLogin();
 
-    // Fires when we catch the redirect
-    UPROPERTY(BlueprintAssignable, Category = "Login")
-    FOnLoginRedirect OnLoginRedirect;
+	// Fires when we catch the redirect
+	UPROPERTY(BlueprintAssignable, Category = "Login")
+	FOnLoginRedirect OnLoginRedirect;
 
 protected:
-    virtual TSharedRef<SWidget> RebuildWidget() override;
-    virtual void NativeDestruct() override;
-    virtual void NativeTick(const FGeometry& MyGeometry, float InDeltaTime) override;
+	virtual TSharedRef<SWidget> RebuildWidget() override;
+	virtual void NativeDestruct() override;
+	virtual void NativeTick(const FGeometry& MyGeometry, float InDeltaTime) override;
 
 private:
-    TSharedPtr<SWebBrowser> WebBrowser;
-    FString RedirectScheme = TEXT("miladycity://");
-    FString LastURL;
+	TSharedPtr<SWebBrowser> WebBrowser;
+	FString RedirectScheme = TEXT("miladycity://");
+	FString LastURL;
 };

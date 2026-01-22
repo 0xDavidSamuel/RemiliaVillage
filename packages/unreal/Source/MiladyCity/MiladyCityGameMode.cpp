@@ -13,44 +13,48 @@ AMiladyCityGameMode::AMiladyCityGameMode()
 
 void AMiladyCityGameMode::BeginPlay()
 {
-    Super::BeginPlay();
+	Super::BeginPlay();
 
-    UGameInstance* GI = GetGameInstance();
-    if (GI)
-    {
-       UAuthService* Auth = GI->GetSubsystem<UAuthService>();
-       if (Auth)
-       {
-          // Load the login widget class at runtime
-          UClass* WidgetClass = LoadClass<ULoginWidget>(nullptr, TEXT("/Game/WBP_Login.WBP_Login_C"));
-          if (WidgetClass)
-          {
-             Auth->LoginWidgetClass = WidgetClass;
-             UE_LOG(LogTemp, Log, TEXT("[MiladyCity] Loaded WBP_Login widget"));
-          }
-          else
-          {
-             UE_LOG(LogTemp, Error, TEXT("[MiladyCity] Could not find WBP_Login widget!"));
-          }
-
-          // Listen for auth result
-          Auth->OnAuthComplete.AddDynamic(this, &AMiladyCityGameMode::OnAuthComplete);
+	UGameInstance* GI = GetGameInstance();
+	if (GI)
+	{
+		UAuthService* Auth = GI->GetSubsystem<UAuthService>();
+		if (Auth)
+		{
+			// Listen for auth result
+			Auth->OnAuthComplete.AddDynamic(this, &AMiladyCityGameMode::OnAuthComplete);
             
-          // Start login
-          UE_LOG(LogTemp, Warning, TEXT("[MiladyCity] Starting login..."));
-          Auth->Login();
-       }
-    }
+			// Start login
+			UE_LOG(LogTemp, Warning, TEXT("[MiladyCity] Starting login..."));
+			Auth->Login();
+		}
+	}
 }
 
-void AMiladyCityGameMode::OnAuthComplete(bool bSuccess, const FString& WalletAddress)
+void AMiladyCityGameMode::OnAuthComplete(bool bSuccess, const FString& WalletAddress, const FPlayerData& PlayerData)
 {
-    if (bSuccess)
-    {
-       UE_LOG(LogTemp, Warning, TEXT("[MiladyCity] LOGIN SUCCESS! Wallet: %s"), *WalletAddress);
-    }
-    else
-    {
-       UE_LOG(LogTemp, Error, TEXT("[MiladyCity] LOGIN FAILED"));
-    }
+	if (bSuccess)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[MiladyCity] LOGIN SUCCESS! Wallet: %s"), *WalletAddress);
+        
+		if (PlayerData.IsNFT())
+		{
+			UE_LOG(LogTemp, Warning, TEXT("[MiladyCity] NFT Character - TokenId: %s"), *PlayerData.TokenId);
+			// TODO: Fetch model from chain using TokenId
+		}
+		else if (PlayerData.IsValid())
+		{
+			UE_LOG(LogTemp, Warning, TEXT("[MiladyCity] Demo Character - ID: %d, Name: %s"), PlayerData.PlayerId, *PlayerData.PlayerName);
+			UE_LOG(LogTemp, Warning, TEXT("[MiladyCity] Model URL: %s"), *PlayerData.ModelURL);
+			// TODO: Load GLB from ModelURL and spawn character
+		}
+		else
+		{
+			UE_LOG(LogTemp, Warning, TEXT("[MiladyCity] No character selected - using default"));
+		}
+	}
+	else
+	{
+		UE_LOG(LogTemp, Error, TEXT("[MiladyCity] LOGIN FAILED"));
+	}
 }

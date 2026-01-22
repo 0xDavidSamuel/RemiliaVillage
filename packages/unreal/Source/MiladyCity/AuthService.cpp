@@ -11,12 +11,22 @@
 void UAuthService::Initialize(FSubsystemCollectionBase& Collection)
 {
     Super::Initialize(Collection);
-    UE_LOG(LogTemp, Log, TEXT("[AuthService] Initialized"));
+    
+    // Hardcode load the LoginWidget class
+    LoginWidgetClass = LoadClass<ULoginWidget>(nullptr, TEXT("/Game/WBP_Login.WBP_Login_C"));
+    
+    if (LoginWidgetClass)
+    {
+        UE_LOG(LogTemp, Log, TEXT("[AuthService] Initialized - LoginWidget loaded"));
+    }
+    else
+    {
+        UE_LOG(LogTemp, Error, TEXT("[AuthService] Failed to load WBP_Login!"));
+    }
 }
 
 void UAuthService::Login()
 {
-    // TODO: Replace with your Vercel URL after deployment
     FString LoginUrl = TEXT("https://remilia-village.vercel.app?redirect_uri=miladycity://auth");
 
     UE_LOG(LogTemp, Log, TEXT("[AuthService] Login URL: %s"), *LoginUrl);
@@ -68,44 +78,91 @@ void UAuthService::OnLoginWidgetRedirect(const FString& RedirectURL)
     HandleRedirect(RedirectURL);
 }
 
+FString UAuthService::GetURLParam(const FString& URL, const FString& ParamName)
+{
+    FString SearchKey = ParamName + TEXT("=");
+    FString Result;
+    
+    if (URL.Contains(SearchKey))
+    {
+        FString Right;
+        URL.Split(SearchKey, nullptr, &Right);
+        
+        // Get value until next & or end of string
+        if (Right.Contains(TEXT("&")))
+        {
+            Right.Split(TEXT("&"), &Result, nullptr);
+        }
+        else
+        {
+            Result = Right;
+        }
+        
+        // URL decode the result
+        Result = FGenericPlatformHttp::UrlDecode(Result);
+    }
+    
+    return Result;
+}
+
 void UAuthService::HandleRedirect(const FString& RedirectURL)
 {
     UE_LOG(LogTemp, Log, TEXT("[AuthService] Handling redirect: %s"), *RedirectURL);
 
-    // Expected format: miladycity://auth?wallet=0x123...
-    if (RedirectURL.Contains(TEXT("wallet=")))
+    // Parse wallet
+    WalletAddress = GetURLParam(RedirectURL, TEXT("wallet"));
+    
+    if (WalletAddress.IsEmpty())
     {
-        FString Right;
-        RedirectURL.Split(TEXT("wallet="), nullptr, &Right);
-        
-        // Remove any trailing parameters
-        if (Right.Contains(TEXT("&")))
+        if (RedirectURL.Contains(TEXT("error=")))
         {
-            Right.Split(TEXT("&"), &WalletAddress, nullptr);
+            UE_LOG(LogTemp, Error, TEXT("[AuthService] Auth error in redirect"));
         }
         else
         {
-            WalletAddress = Right;
+            UE_LOG(LogTemp, Error, TEXT("[AuthService] Invalid redirect URL - no wallet found"));
         }
-
-        UE_LOG(LogTemp, Log, TEXT("[AuthService] Login success! Wallet: %s"), *WalletAddress);
-        OnAuthComplete.Broadcast(true, WalletAddress);
+        OnAuthComplete.Broadcast(false, TEXT(""), FPlayerData());
+        return;
     }
-    else if (RedirectURL.Contains(TEXT("error=")))
+
+    // Parse player data
+    CurrentPlayerData = FPlayerData();
+    
+    // Check for NFT (tokenId) first
+    FString TokenId = GetURLParam(RedirectURL, TEXT("tokenId"));
+    if (!TokenId.IsEmpty())
     {
-        UE_LOG(LogTemp, Error, TEXT("[AuthService] Auth error in redirect"));
-        OnAuthComplete.Broadcast(false, TEXT(""));
+        CurrentPlayerData.TokenId = TokenId;
+        UE_LOG(LogTemp, Log, TEXT("[AuthService] NFT character - TokenId: %s"), *TokenId);
+        // TODO: Fetch model URL from contract using tokenId
     }
     else
     {
-        UE_LOG(LogTemp, Error, TEXT("[AuthService] Invalid redirect URL - no wallet found"));
-        OnAuthComplete.Broadcast(false, TEXT(""));
+        // Demo character - get player data directly
+        FString PlayerIdStr = GetURLParam(RedirectURL, TEXT("playerId"));
+        if (!PlayerIdStr.IsEmpty())
+        {
+            CurrentPlayerData.PlayerId = FCString::Atoi(*PlayerIdStr);
+        }
+        
+        CurrentPlayerData.PlayerName = GetURLParam(RedirectURL, TEXT("playerName"));
+        CurrentPlayerData.ModelURL = GetURLParam(RedirectURL, TEXT("model"));
+        
+        UE_LOG(LogTemp, Log, TEXT("[AuthService] Demo character - ID: %d, Name: %s, Model: %s"), 
+            CurrentPlayerData.PlayerId, 
+            *CurrentPlayerData.PlayerName, 
+            *CurrentPlayerData.ModelURL);
     }
+
+    UE_LOG(LogTemp, Log, TEXT("[AuthService] Login success! Wallet: %s"), *WalletAddress);
+    OnAuthComplete.Broadcast(true, WalletAddress, CurrentPlayerData);
 }
 
 void UAuthService::Logout()
 {
     WalletAddress.Empty();
     SessionToken.Empty();
+    CurrentPlayerData = FPlayerData();
     UE_LOG(LogTemp, Log, TEXT("[AuthService] Logged out"));
 }
