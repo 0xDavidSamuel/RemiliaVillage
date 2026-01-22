@@ -105,7 +105,7 @@ const Creator = () => {
 };
 
 // ============================================================================
-// PLAYER SELECT (Mascots + Mystery Boxes)
+// PLAYER SELECT (Mascots + Created Characters)
 // ============================================================================
 const PlayerSelect = () => {
   const { players, selectedPlayer, selectPlayer, setMode } = usePlayerStore();
@@ -114,13 +114,6 @@ const PlayerSelect = () => {
     setMode('demo');
     selectPlayer(player);
   };
-
-  // Mystery boxes for future unlockables
-  const mysteryBoxes = [
-    { id: 'mystery-1' },
-    { id: 'mystery-2' },
-    { id: 'mystery-3' },
-  ];
 
   return (
     <div className="flex gap-4 justify-center flex-wrap">
@@ -149,10 +142,10 @@ const PlayerSelect = () => {
         </button>
       ))}
 
-      {/* Mystery boxes */}
-      {mysteryBoxes.map((box) => (
+      {/* Always show exactly 2 mystery boxes */}
+      {[1, 2].map((i) => (
         <div
-          key={box.id}
+          key={`mystery-${i}`}
           className="w-24 h-28 md:w-28 md:h-32 rounded-xl border-4 border-gray-700 border-dashed bg-gray-800/50 flex items-center justify-center cursor-not-allowed"
         >
           <span className="text-4xl text-gray-600">?</span>
@@ -269,26 +262,26 @@ const SignInButton = () => {
 };
 
 // ============================================================================
-// MINT BUTTON
+// CREATE CHARACTER BUTTON
 // ============================================================================
-const MintButton = () => {
+const CreateCharacterButton = () => {
   const { user } = usePlayerStore();
-  const [isMinting, setIsMinting] = useState(false);
+  const [isCreating, setIsCreating] = useState(false);
 
-  const handleMint = async () => {
-    setIsMinting(true);
+  const handleCreate = async () => {
+    setIsCreating(true);
     // TODO: Implement mint logic
-    console.log("Minting character...");
-    setTimeout(() => setIsMinting(false), 2000);
+    console.log("Creating character...");
+    setTimeout(() => setIsCreating(false), 2000);
   };
 
   return (
     <button
       className="w-full py-3 rounded-lg bg-orange-500 hover:bg-orange-600 transition-colors text-white font-medium disabled:opacity-50"
-      onClick={handleMint}
-      disabled={isMinting || !user.walletAddress}
+      onClick={handleCreate}
+      disabled={isCreating || !user.walletAddress}
     >
-      {isMinting ? "Minting..." : "Mint Character"}
+      {isCreating ? "Creating..." : "Create Character"}
     </button>
   );
 };
@@ -391,8 +384,8 @@ const Sidebar = () => {
           <Creator />
         </div>
 
-        {/* Mint Button */}
-        <MintButton />
+        {/* Create Character Button */}
+        <CreateCharacterButton />
 
         {/* Created Characters (Player Select) */}
         <div>
