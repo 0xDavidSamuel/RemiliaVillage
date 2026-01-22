@@ -1,94 +1,147 @@
 import { useEffect, useState } from "react";
 import { usePlayerStore } from "../store";
 import { isUnrealWebview, redirectToUnreal } from "../lib/redirect";
-import { login, logout, getWalletAddress, isConnected, web3auth } from "../lib/web3auth";
+import { login, logout, getWalletAddress } from "../lib/web3auth";
 
 // ============================================================================
-// PLAYER SELECT (2 Mascots)
+// PLAYER SELECT (Mascots + triggers demo mode)
 // ============================================================================
 
 const PlayerSelect = () => {
-  const { players, selectedPlayer, selectPlayer } = usePlayerStore();
+  const { players, selectedPlayer, selectPlayer, setMode } = usePlayerStore();
+
+  const handleSelectPlayer = (player) => {
+    setMode('demo');
+    selectPlayer(player);
+  };
 
   return (
-    <div className="flex flex-col gap-4">
-      <div className="flex gap-4 justify-center">
-        {players.map((player) => (
-          <button
-            key={player.id}
-            onClick={() => selectPlayer(player)}
-            className={`w-24 h-24 md:w-32 md:h-32 rounded-xl overflow-hidden transition-all border-4 duration-300 ${
-              selectedPlayer?.id === player.id
-                ? "border-indigo-500 scale-105"
-                : "border-gray-600 hover:border-gray-500"
-            }`}
-          >
-            {player.thumbnail ? (
-              <img
-                className="object-cover w-full h-full"
-                src={player.thumbnail}
-                alt={player.name}
-              />
-            ) : (
-              <div className="w-full h-full flex items-center justify-center bg-gray-800 text-white text-sm font-medium">
-                {player.name}
-              </div>
-            )}
-          </button>
-        ))}
-      </div>
-      {selectedPlayer && (
-        <p className="text-center text-gray-400 text-sm">
-          Selected: <span className="text-white font-medium">{selectedPlayer.name}</span>
-        </p>
-      )}
+    <div className="flex gap-4 justify-center">
+      {players.map((player) => (
+        <button
+          key={player.id}
+          onClick={() => handleSelectPlayer(player)}
+          className={`w-20 h-20 md:w-24 md:h-24 rounded-xl overflow-hidden transition-all border-4 duration-300 ${
+            selectedPlayer?.id === player.id
+              ? "border-indigo-500 scale-105"
+              : "border-gray-600 hover:border-gray-500"
+          }`}
+        >
+          {player.thumbnail ? (
+            <img
+              className="object-cover w-full h-full"
+              src={player.thumbnail}
+              alt={player.name}
+            />
+          ) : (
+            <div className="w-full h-full flex items-center justify-center bg-gray-800 text-white text-xs font-medium">
+              {player.name}
+            </div>
+          )}
+        </button>
+      ))}
     </div>
   );
 };
 
 // ============================================================================
-// GREYED OUT CREATOR (Coming Soon) - Shows real UI but disabled
+// CREATOR (Trait Selection - clicking switches to creator mode)
 // ============================================================================
 
-const DisabledCreator = () => {
-  const categories = ["Hair", "Eyes", "Mouth", "Brows", "Skin", "Hat", "Shirt", "Glasses", "Face Deco", "Neck"];
+const Creator = () => {
+  const { mode, setMode, categories, currentCategory, customization, setCurrentCategory, changeAsset, updateSkin } = usePlayerStore();
+
+  const handleCategoryClick = (category) => {
+    setMode('creator');
+    setCurrentCategory(category);
+  };
+
+  const currentCustomization = currentCategory ? customization[currentCategory.name] : null;
 
   return (
-    <div className="opacity-40 pointer-events-none select-none">
+    <div className="flex flex-col gap-4">
       {/* Category tabs */}
-      <div className="flex flex-wrap gap-2 mb-4">
+      <div className="flex flex-wrap gap-2">
         {categories.map((cat) => (
           <button
-            key={cat}
-            className="px-3 py-1.5 rounded-lg text-sm font-medium bg-gray-800 text-gray-400"
+            key={cat.id}
+            onClick={() => handleCategoryClick(cat)}
+            className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+              mode === 'creator' && currentCategory?.id === cat.id
+                ? 'bg-indigo-500 text-white'
+                : 'bg-gray-800 text-gray-400 hover:text-white'
+            }`}
           >
-            {cat}
+            {cat.name}
           </button>
         ))}
       </div>
 
-      {/* Fake asset grid */}
-      <div className="flex gap-2 flex-wrap">
-        {[1, 2, 3, 4, 5, 6].map((i) => (
-          <div
-            key={i}
-            className="w-14 h-14 md:w-16 md:h-16 rounded-lg bg-gray-800 border-2 border-gray-600"
-          />
-        ))}
-      </div>
+      {/* Only show options when in creator mode */}
+      {mode === 'creator' && currentCategory && (
+        <>
+          {/* Color palette (for skin) */}
+          {currentCategory.colorPalette && (
+            <div className="flex gap-2">
+              {currentCategory.colorPalette.map((color) => (
+                <button
+                  key={color}
+                  onClick={() => updateSkin(color)}
+                  className="w-8 h-8 rounded-lg border-2 border-transparent hover:border-white transition-colors"
+                  style={{ backgroundColor: color }}
+                />
+              ))}
+            </div>
+          )}
 
-      {/* Color palette */}
-      <div className="mt-4">
-        <div className="flex gap-2">
-          {['#f5c6a5', '#e8b094', '#d4956b', '#a57449', '#6b4423'].map((color) => (
-            <div
-              key={color}
-              className="w-8 h-8 rounded-lg border-2 border-transparent"
-              style={{ backgroundColor: color }}
-            />
-          ))}
-        </div>
-      </div>
+          {/* Asset grid */}
+          <div className="flex gap-2 flex-wrap">
+            {/* None/Remove option for removable categories */}
+            {currentCategory.removable && (
+              <button
+                onClick={() => changeAsset(currentCategory.name, null)}
+                className={`w-14 h-14 md:w-16 md:h-16 rounded-lg border-2 transition-all flex items-center justify-center ${
+                  !currentCustomization?.asset
+                    ? 'border-indigo-500 bg-gray-700'
+                    : 'border-gray-600 bg-gray-800 hover:border-gray-500'
+                }`}
+              >
+                <span className="text-gray-400 text-xs">None</span>
+              </button>
+            )}
+            
+            {currentCategory.assets.map((asset) => (
+              <button
+                key={asset.id}
+                onClick={() => changeAsset(currentCategory.name, asset)}
+                className={`w-14 h-14 md:w-16 md:h-16 rounded-lg border-2 transition-all ${
+                  currentCustomization?.asset?.id === asset.id
+                    ? 'border-indigo-500 bg-gray-700'
+                    : 'border-gray-600 bg-gray-800 hover:border-gray-500'
+                }`}
+              >
+                {asset.thumbnail ? (
+                  <img
+                    src={asset.thumbnail}
+                    alt={asset.name}
+                    className="w-full h-full object-cover rounded-md"
+                  />
+                ) : (
+                  <span className="text-gray-400 text-xs text-center px-1">{asset.name}</span>
+                )}
+              </button>
+            ))}
+          </div>
+
+          {/* Current selection */}
+          <p className="text-gray-400 text-sm">
+            {currentCategory.name}:{' '}
+            <span className="text-white font-medium">
+              {currentCustomization?.asset?.name || 'None'}
+            </span>
+          </p>
+        </>
+      )}
     </div>
   );
 };
@@ -142,7 +195,7 @@ const SignInButton = () => {
       const address = await getWalletAddress();
       if (address) {
         setWallet(address);
-        setTier("whitelist"); // Free signup = whitelist
+        setTier("whitelist");
       }
     } catch (error) {
       console.error("Sign in failed:", error);
@@ -161,7 +214,6 @@ const SignInButton = () => {
     }
   };
 
-  // Already signed in
   if (user.walletAddress) {
     return (
       <div className="flex flex-col gap-2">
@@ -184,7 +236,6 @@ const SignInButton = () => {
     );
   }
 
-  // Sign in button
   return (
     <div className="flex flex-col gap-2">
       <button
@@ -206,19 +257,19 @@ const SignInButton = () => {
 // ============================================================================
 
 const ContinueToGameButton = () => {
-  const { user, selectedPlayer } = usePlayerStore();
+  const { user, selectedPlayer, mode } = usePlayerStore();
   const isUnreal = isUnrealWebview();
 
-  // Must be signed in and have selected a player
-  if (!user.walletAddress || !selectedPlayer) {
+  if (!user.walletAddress) {
     return null;
   }
 
   const handleContinue = () => {
     if (isUnreal) {
-      redirectToUnreal(user.walletAddress, String(selectedPlayer.id));
+      const playerId = mode === 'demo' ? String(selectedPlayer?.id) : 'custom';
+      redirectToUnreal(user.walletAddress, playerId);
     } else {
-      alert(`Ready to play!\n\nWallet: ${user.walletAddress}\nPlayer: ${selectedPlayer.name}\nTier: ${user.tier}`);
+      alert(`Ready to play!\n\nWallet: ${user.walletAddress}\nMode: ${mode}\nPlayer: ${mode === 'demo' ? selectedPlayer?.name : 'Custom'}`);
     }
   };
 
@@ -228,35 +279,6 @@ const ContinueToGameButton = () => {
       onClick={handleContinue}
     >
       {isUnreal ? "Continue to Game" : "Continue to Game →"}
-    </button>
-  );
-};
-
-// ============================================================================
-// UPGRADE TO PRESALE (Optional)
-// ============================================================================
-
-const UpgradeButton = () => {
-  const { user, setTier } = usePlayerStore();
-
-  // Only show if whitelist (not presale yet)
-  if (!user.walletAddress || user.tier !== "whitelist") {
-    return null;
-  }
-
-  const handleUpgrade = () => {
-    // TODO: Integrate $CULT payment
-    alert("$CULT payment integration coming soon!\n\nThis will upgrade you to Pre-Sale tier for free minting at v1.0 launch.");
-    // For testing:
-    // setTier("presale");
-  };
-
-  return (
-    <button
-      className="w-full py-2 rounded-lg bg-yellow-500/20 hover:bg-yellow-500/30 border border-yellow-500/50 transition-colors text-yellow-400 text-sm font-medium"
-      onClick={handleUpgrade}
-    >
-      Upgrade to Pre-Sale ($CULT)
     </button>
   );
 };
@@ -305,7 +327,7 @@ const LoadingScreen = () => {
 // ============================================================================
 
 const Sidebar = () => {
-  const { user, selectedPlayer } = usePlayerStore();
+  const { mode, selectedPlayer } = usePlayerStore();
 
   return (
     <aside className="w-full md:w-96 h-[50vh] md:h-full bg-gray-900/95 border-t md:border-t-0 md:border-l border-gray-800 overflow-y-auto">
@@ -315,25 +337,31 @@ const Sidebar = () => {
           <a href="https://remiliadrip.com">
             <img className="w-12 md:w-16" src="/images/dripp.png" alt="Logo" />
           </a>
-          <h1 className="text-lg md:text-xl font-bold text-white">Select Player</h1>
+          <h1 className="text-lg md:text-xl font-bold text-white">
+            {mode === 'demo' ? 'Select Player' : 'Create Character'}
+          </h1>
         </div>
 
-        {/* Player Select */}
+        {/* Player Select (Mascots) */}
         <div>
-          <h3 className="text-sm font-medium text-gray-400 mb-2">Choose Your Character</h3>
+          <h3 className="text-sm font-medium text-gray-400 mb-2">Characters</h3>
           <PlayerSelect />
+          {mode === 'demo' && selectedPlayer && (
+            <p className="text-center text-gray-400 text-sm mt-2">
+              Selected: <span className="text-white font-medium">{selectedPlayer.name}</span>
+            </p>
+          )}
         </div>
 
-        {/* Greyed Out Creator */}
+        {/* Creator (Trait tabs + options) */}
         <div>
           <h3 className="text-sm font-medium text-gray-400 mb-2">Customize</h3>
-          <DisabledCreator />
+          <Creator />
         </div>
 
         {/* Action Buttons */}
         <div className="flex flex-col gap-3 mt-auto">
           <SignInButton />
-          <UpgradeButton />
           <ContinueToGameButton />
           <DownloadButton />
         </div>

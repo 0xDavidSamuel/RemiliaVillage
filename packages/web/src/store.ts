@@ -2,7 +2,7 @@ import { create } from 'zustand';
 import { MeshStandardMaterial } from 'three';
 
 // ============================================================================
-// DEMO MODE - Player Select (2 Mascots)
+// TYPES
 // ============================================================================
 
 interface Player {
@@ -18,38 +18,11 @@ interface User {
   tier: 'none' | 'whitelist' | 'presale';
 }
 
-const DEMO_PLAYERS: Player[] = [
-  {
-    id: 1,
-    name: 'Mascot V1',
-    description: 'The original',
-    model: '/models/mascot-v1.glb',
-    thumbnail: '/images/mascot-v1.png',
-  },
-  {
-    id: 2,
-    name: 'Mascot V2',
-    description: 'The variant',
-    model: '/models/mascot-v2.glb',
-    thumbnail: '/images/mascot-v2.png',
-  },
-];
-
-// ============================================================================
-// FULL CREATOR MODE - Uncomment when ready for v1.0
-// ============================================================================
-
-/*
-import { fetchFromIPFS, ipfsToHttp, type AvatarTraits } from './lib/storage';
-
-const CATEGORIES_IPFS_URI = import.meta.env.VITE_CATEGORIES_IPFS_URI || null;
-
 interface Asset {
   id: number;
   name: string;
   thumbnail?: string;
   model?: string;
-  lockedGroups?: string[];
 }
 
 interface Category {
@@ -69,22 +42,34 @@ interface Customization {
   };
 }
 
-interface LockedGroups {
-  [key: string]: Array<{ name: string; categoryName: string }>;
-}
+// ============================================================================
+// DATA
+// ============================================================================
 
-interface CategoriesData {
-  categories: Category[];
-}
+const DEMO_PLAYERS: Player[] = [
+  {
+    id: 1,
+    name: 'Mascot V1',
+    description: 'The original',
+    model: '/models/mascot-v1.glb',
+    thumbnail: '/images/mascot-v1.png',
+  },
+  {
+    id: 2,
+    name: 'Mascot V2',
+    description: 'The variant',
+    model: '/models/mascot-v2.glb',
+    thumbnail: '/images/mascot-v2.png',
+  },
+];
 
-const FALLBACK_CATEGORIES: Category[] = [
-  // ============ MANDATORY CATEGORIES ============
+const CREATOR_CATEGORIES: Category[] = [
   {
     id: 'skin',
     name: 'Skin',
     position: 0,
     assets: [
-      { id: 0, name: 'Pale' },
+      { id: 0, name: 'Default' },
     ],
     startingAsset: 0,
     colorPalette: ['#f5c6a5', '#e8b094', '#d4956b', '#a57449', '#6b4423'],
@@ -125,7 +110,6 @@ const FALLBACK_CATEGORIES: Category[] = [
     ],
     startingAsset: 0,
   },
-  // ============ OPTIONAL/REMOVABLE CATEGORIES ============
   {
     id: 'hat',
     name: 'Hat',
@@ -157,112 +141,82 @@ const FALLBACK_CATEGORIES: Category[] = [
     removable: true,
   },
   {
-    id: 'face',
-    name: 'Face',
-    position: 8,
-    assets: [],
-    removable: true,
-  },
-  {
     id: 'faceDeco',
     name: 'Face Deco',
-    position: 9,
+    position: 8,
     assets: [
       { id: 0, name: 'Star Heart Tattoo', model: '/models/facedeco-0.glb' },
     ],
-    startingAsset: 0,
     removable: true,
   },
   {
     id: 'neck',
     name: 'Neck',
-    position: 10,
+    position: 9,
     assets: [
       { id: 0, name: 'Lean Neck Tattoo', model: '/models/neck-0.glb' },
     ],
-    startingAsset: 0,
-    removable: true,
-  },
-  {
-    id: 'earrings',
-    name: 'Earrings',
-    position: 11,
-    assets: [],
     removable: true,
   },
 ];
-*/
 
 // ============================================================================
-// STORE - DEMO MODE
+// STORE
 // ============================================================================
 
 interface PlayerState {
-  // Demo state
+  // Mode
+  mode: 'demo' | 'creator';
+  setMode: (mode: 'demo' | 'creator') => void;
+  
+  // Common
   loading: boolean;
   error: string | null;
-  players: Player[];
-  selectedPlayer: Player | null;
   user: User;
   skin: MeshStandardMaterial;
   download: () => void;
   setDownload: (fn: () => void) => void;
-  initialize: () => void;
-  selectPlayer: (player: Player) => void;
   setWallet: (address: string | null) => void;
   setTier: (tier: 'none' | 'whitelist' | 'presale') => void;
-
-  /* FULL CREATOR MODE - Uncomment for v1.0
+  
+  // Demo mode
+  players: Player[];
+  selectedPlayer: Player | null;
+  selectPlayer: (player: Player) => void;
+  
+  // Creator mode
   categories: Category[];
   currentCategory: Category | null;
-  assets: Asset[];
   customization: Customization;
-  lockedGroups: LockedGroups;
-  fetchCategories: () => Promise<void>;
   setCurrentCategory: (category: Category) => void;
-  changeAsset: (category: string, asset: Asset | null) => void;
-  getTraitsForMint: () => AvatarTraits;
-  getAssetUrl: (uri: string) => string;
-  updateColor: (color: string) => void;
+  changeAsset: (categoryName: string, asset: Asset | null) => void;
   updateSkin: (color: string) => void;
-  applyLockedAssets: () => void;
-  */
+  
+  // Init
+  initialize: () => void;
 }
 
-export const usePlayerStore = create<PlayerState>((set, _get) => ({
+export const usePlayerStore = create<PlayerState>((set, get) => ({
   // ============================================================================
-  // DEMO STATE
+  // MODE
+  // ============================================================================
+  mode: 'demo',
+  setMode: (mode) => set({ mode }),
+
+  // ============================================================================
+  // COMMON STATE
   // ============================================================================
   loading: true,
   error: null,
-  players: [],
-  selectedPlayer: null,
   user: {
     walletAddress: null,
     tier: 'none',
   },
   skin: new MeshStandardMaterial({ color: 0xf5c6a5, roughness: 1 }),
   download: () => {},
+  setDownload: (fn) => set({ download: fn }),
 
-  setDownload: (fn: () => void) => set({ download: fn }),
-
-  // Initialize demo with 2 mascots
-  initialize: () => {
-    set({
-      players: DEMO_PLAYERS,
-      selectedPlayer: DEMO_PLAYERS[0],
-      loading: false,
-      error: null,
-    });
-  },
-
-  // Select a player (mascot v1 or v2)
-  selectPlayer: (player: Player) => {
-    set({ selectedPlayer: player });
-  },
-
-  // Set wallet address (from Web3Auth)
-  setWallet: (address: string | null) => {
+  setWallet: (address) => {
     set((state) => ({
       user: {
         ...state.user,
@@ -272,8 +226,7 @@ export const usePlayerStore = create<PlayerState>((set, _get) => ({
     }));
   },
 
-  // Set tier (whitelist → presale via $CULT payment)
-  setTier: (tier: 'none' | 'whitelist' | 'presale') => {
+  setTier: (tier) => {
     set((state) => ({
       user: {
         ...state.user,
@@ -283,154 +236,69 @@ export const usePlayerStore = create<PlayerState>((set, _get) => ({
   },
 
   // ============================================================================
-  // FULL CREATOR MODE - Uncomment for v1.0
+  // DEMO MODE
   // ============================================================================
-
-  /*
-  categories: [],
-  currentCategory: null,
-  assets: [],
-  customization: {},
-  lockedGroups: {},
-
-  fetchCategories: async () => {
-    set({ loading: true, error: null });
-
-    try {
-      let categories: Category[];
-
-      if (CATEGORIES_IPFS_URI) {
-        const data = await fetchFromIPFS<CategoriesData>(CATEGORIES_IPFS_URI);
-        categories = data.categories;
-      } else {
-        categories = FALLBACK_CATEGORIES;
-      }
-
-      categories.sort((a, b) => a.position - b.position);
-
-      const assets = categories.flatMap((cat) =>
-        cat.assets.map((asset) => ({ ...asset, categoryId: cat.id }))
-      );
-
-      const customization: Customization = {};
-      categories.forEach((category) => {
-        let startingAsset: Asset | null = null;
-
-        if (category.startingAsset !== undefined && category.assets.length > 0) {
-          startingAsset = category.assets.find((a) => a.id === category.startingAsset) || category.assets[0];
-        } else if (category.assets.length > 0 && !category.removable) {
-          startingAsset = category.assets[0];
-        }
-
-        customization[category.name] = {
-          asset: startingAsset,
-          color: category.colorPalette?.[0] || undefined,
-        };
-      });
-
-      set({
-        categories,
-        currentCategory: categories[0],
-        assets,
-        customization,
-        loading: false,
-      });
-
-      get().applyLockedAssets();
-    } catch (error) {
-      console.error('Failed to fetch categories:', error);
-      set({ error: (error as Error).message, loading: false });
-    }
+  players: [],
+  selectedPlayer: null,
+  
+  selectPlayer: (player) => {
+    set({ selectedPlayer: player });
   },
 
-  setCurrentCategory: (category: Category) => set({ currentCategory: category }),
+  // ============================================================================
+  // CREATOR MODE
+  // ============================================================================
+  categories: [],
+  currentCategory: null,
+  customization: {},
 
-  changeAsset: (category: string, asset: Asset | null) => {
+  setCurrentCategory: (category) => set({ currentCategory: category }),
+
+  changeAsset: (categoryName, asset) => {
     set((state) => ({
       customization: {
         ...state.customization,
-        [category]: {
-          ...state.customization[category],
+        [categoryName]: {
+          ...state.customization[categoryName],
           asset,
         },
       },
     }));
-    get().applyLockedAssets();
-  },
-
-  updateColor: (color: string) => {
-    const currentCategory = get().currentCategory;
-    if (!currentCategory) return;
-
-    set((state) => ({
-      customization: {
-        ...state.customization,
-        [currentCategory.name]: {
-          ...state.customization[currentCategory.name],
-          color,
-        },
-      },
-    }));
-
-    if (currentCategory.name === 'Skin') {
-      get().skin.color.set(color);
-    }
   },
 
   updateSkin: (color: string) => {
     get().skin.color.set(color);
   },
 
-  applyLockedAssets: () => {
-    const customization = get().customization;
-    const categories = get().categories;
-    const lockedGroups: LockedGroups = {};
-
-    Object.entries(customization).forEach(([categoryName, categoryData]) => {
-      if (categoryData.asset?.lockedGroups) {
-        categoryData.asset.lockedGroups.forEach((groupId) => {
-          const lockedCategory = categories.find((cat) => cat.id === groupId);
-          if (lockedCategory) {
-            if (!lockedGroups[lockedCategory.name]) {
-              lockedGroups[lockedCategory.name] = [];
-            }
-            lockedGroups[lockedCategory.name].push({
-              name: categoryData.asset!.name,
-              categoryName,
-            });
-          }
-        });
+  // ============================================================================
+  // INITIALIZE
+  // ============================================================================
+  initialize: () => {
+    const players = DEMO_PLAYERS;
+    const categories = CREATOR_CATEGORIES;
+    const customization: Customization = {};
+    
+    categories.forEach((category) => {
+      let startingAsset: Asset | null = null;
+      
+      if (category.startingAsset !== undefined && category.assets.length > 0) {
+        startingAsset = category.assets.find((a) => a.id === category.startingAsset) || null;
       }
+      
+      customization[category.name] = {
+        asset: startingAsset,
+        color: category.colorPalette?.[0],
+      };
     });
 
-    set({ lockedGroups });
+    set({
+      players,
+      selectedPlayer: players[0],
+      categories,
+      currentCategory: categories[0],
+      customization,
+      loading: false,
+      error: null,
+    });
   },
-
-  getTraitsForMint: (): AvatarTraits => {
-    const { customization } = get();
-
-    return {
-      skin: customization['Skin']?.asset?.id ?? 0,
-      neck: customization['Neck']?.asset?.id ?? 0,
-      faceDeco: customization['Face Deco']?.asset?.id ?? 0,
-      face: customization['Face']?.asset?.id ?? 0,
-      brows: customization['Brows']?.asset?.id ?? 0,
-      mouth: customization['Mouth']?.asset?.id ?? 0,
-      earrings: customization['Earrings']?.asset?.id ?? 0,
-      eyeColor: 0,
-      eyes: customization['Eyes']?.asset?.id ?? 0,
-      hair: customization['Hair']?.asset?.id ?? 0,
-      glasses: customization['Glasses']?.asset?.id ?? 0,
-      shirt: customization['Shirt']?.asset?.id ?? 0,
-      hat: customization['Hat']?.asset?.id ?? 0,
-    };
-  },
-
-  getAssetUrl: (uri: string) => {
-    if (uri.startsWith('/')) {
-      return uri;
-    }
-    return ipfsToHttp(uri);
-  },
-  */
 }));

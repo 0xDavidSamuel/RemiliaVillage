@@ -4,7 +4,14 @@ import { CameraManager } from "./CameraManager";
 import { usePlayerStore } from "../store";
 
 export function Experience() {
+  const mode = usePlayerStore((state) => state.mode);
   const selectedPlayer = usePlayerStore((state) => state.selectedPlayer);
+  const customization = usePlayerStore((state) => state.customization);
+  
+  // Create a key that changes when mode, player, or customization changes
+  const customizationKey = mode === 'creator' 
+    ? JSON.stringify(customization)
+    : selectedPlayer?.id;
 
   return (
     <>
@@ -17,7 +24,7 @@ export function Experience() {
         blur={1.5}
         far={1}
       />
-      <Player key={selectedPlayer?.id} position={[0, 0, 0]} />
+      <Player key={`${mode}-${customizationKey}`} position={[0, 0, 0]} />
     </>
   );
 }
