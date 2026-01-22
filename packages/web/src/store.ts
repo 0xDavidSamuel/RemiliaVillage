@@ -116,6 +116,8 @@ const CREATOR_CATEGORIES: Category[] = [
     position: 5,
     assets: [
       { id: 0, name: 'Denim USA Cap', model: '/models/hat-0.glb' },
+      { id: 1, name: 'Knight Hat', model: '/models/hat-1.glb' },
+      { id: 2, name: 'Witch Hat', model: '/models/hat-2.glb' },
     ],
     startingAsset: 0,
     removable: true,
@@ -146,6 +148,7 @@ const CREATOR_CATEGORIES: Category[] = [
     position: 8,
     assets: [
       { id: 0, name: 'Star Heart Tattoo', model: '/models/facedeco-0.glb' },
+      { id: 1, name: 'Ninja Mask', model: '/models/facedeco-1.glb' },
     ],
     removable: true,
   },

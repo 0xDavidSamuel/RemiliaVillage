@@ -259,12 +259,37 @@ const SignInButton = () => {
         onClick={handleSignIn}
         disabled={isSigningIn}
       >
-        {isSigningIn ? "Signing In..." : "Player Sign In"}
+        {isSigningIn ? "Logging In..." : "Player Log In"}
       </button>
       {signInError && (
         <p className="text-red-400 text-sm text-center">{signInError}</p>
       )}
     </div>
+  );
+};
+
+// ============================================================================
+// MINT BUTTON
+// ============================================================================
+const MintButton = () => {
+  const { user } = usePlayerStore();
+  const [isMinting, setIsMinting] = useState(false);
+
+  const handleMint = async () => {
+    setIsMinting(true);
+    // TODO: Implement mint logic
+    console.log("Minting character...");
+    setTimeout(() => setIsMinting(false), 2000);
+  };
+
+  return (
+    <button
+      className="w-full py-3 rounded-lg bg-orange-500 hover:bg-orange-600 transition-colors text-white font-medium disabled:opacity-50"
+      onClick={handleMint}
+      disabled={isMinting || !user.walletAddress}
+    >
+      {isMinting ? "Minting..." : "Mint Character"}
+    </button>
   );
 };
 
@@ -366,9 +391,12 @@ const Sidebar = () => {
           <Creator />
         </div>
 
-        {/* Unlocked Characters (Player Select - now on bottom) */}
+        {/* Mint Button */}
+        <MintButton />
+
+        {/* Created Characters (Player Select) */}
         <div>
-          <h3 className="text-sm font-medium text-gray-400 mb-2">Unlocked Characters</h3>
+          <h3 className="text-sm font-medium text-gray-400 mb-2">Created Characters</h3>
           <PlayerSelect />
           {mode === 'demo' && selectedPlayer && (
             <p className="text-center text-gray-400 text-sm mt-2">
