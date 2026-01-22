@@ -49,14 +49,14 @@ interface Customization {
 const DEMO_PLAYERS: Player[] = [
   {
     id: 1,
-    name: 'Mascot V1',
+    name: 'Drippy',
     description: 'The original',
     model: '/models/mascot-v1.glb',
     thumbnail: '/images/mascot-v1.png',
   },
   {
     id: 2,
-    name: 'Mascot V2',
+    name: 'Milady',
     description: 'The variant',
     model: '/models/mascot-v2.glb',
     thumbnail: '/images/mascot-v2.png',

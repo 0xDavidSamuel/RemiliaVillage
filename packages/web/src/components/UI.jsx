@@ -4,50 +4,8 @@ import { isUnrealWebview, redirectToUnreal } from "../lib/redirect";
 import { login, logout, getWalletAddress } from "../lib/web3auth";
 
 // ============================================================================
-// PLAYER SELECT (Mascots + triggers demo mode)
-// ============================================================================
-
-const PlayerSelect = () => {
-  const { players, selectedPlayer, selectPlayer, setMode } = usePlayerStore();
-
-  const handleSelectPlayer = (player) => {
-    setMode('demo');
-    selectPlayer(player);
-  };
-
-  return (
-    <div className="flex gap-4 justify-center">
-      {players.map((player) => (
-        <button
-          key={player.id}
-          onClick={() => handleSelectPlayer(player)}
-          className={`w-20 h-20 md:w-24 md:h-24 rounded-xl overflow-hidden transition-all border-4 duration-300 ${
-            selectedPlayer?.id === player.id
-              ? "border-indigo-500 scale-105"
-              : "border-gray-600 hover:border-gray-500"
-          }`}
-        >
-          {player.thumbnail ? (
-            <img
-              className="object-cover w-full h-full"
-              src={player.thumbnail}
-              alt={player.name}
-            />
-          ) : (
-            <div className="w-full h-full flex items-center justify-center bg-gray-800 text-white text-xs font-medium">
-              {player.name}
-            </div>
-          )}
-        </button>
-      ))}
-    </div>
-  );
-};
-
-// ============================================================================
 // CREATOR (Trait Selection - clicking switches to creator mode)
 // ============================================================================
-
 const Creator = () => {
   const { mode, setMode, categories, currentCategory, customization, setCurrentCategory, changeAsset, updateSkin } = usePlayerStore();
 
@@ -109,7 +67,7 @@ const Creator = () => {
                 <span className="text-gray-400 text-xs">None</span>
               </button>
             )}
-            
+
             {currentCategory.assets.map((asset) => (
               <button
                 key={asset.id}
@@ -147,9 +105,66 @@ const Creator = () => {
 };
 
 // ============================================================================
+// PLAYER SELECT (Mascots + Mystery Boxes)
+// ============================================================================
+const PlayerSelect = () => {
+  const { players, selectedPlayer, selectPlayer, setMode } = usePlayerStore();
+
+  const handleSelectPlayer = (player) => {
+    setMode('demo');
+    selectPlayer(player);
+  };
+
+  // Mystery boxes for future unlockables
+  const mysteryBoxes = [
+    { id: 'mystery-1' },
+    { id: 'mystery-2' },
+    { id: 'mystery-3' },
+  ];
+
+  return (
+    <div className="flex gap-4 justify-center flex-wrap">
+      {/* Actual players */}
+      {players.map((player) => (
+        <button
+          key={player.id}
+          onClick={() => handleSelectPlayer(player)}
+          className={`w-24 h-28 md:w-28 md:h-32 rounded-xl overflow-hidden transition-all border-4 duration-300 ${
+            selectedPlayer?.id === player.id
+              ? "border-indigo-500 scale-105"
+              : "border-gray-600 hover:border-gray-500"
+          }`}
+        >
+          {player.thumbnail ? (
+            <img
+              className="object-cover w-full h-full scale-125"
+              src={player.thumbnail}
+              alt={player.name}
+            />
+          ) : (
+            <div className="w-full h-full flex items-center justify-center bg-gray-800 text-white text-xs font-medium">
+              {player.name}
+            </div>
+          )}
+        </button>
+      ))}
+
+      {/* Mystery boxes */}
+      {mysteryBoxes.map((box) => (
+        <div
+          key={box.id}
+          className="w-24 h-28 md:w-28 md:h-32 rounded-xl border-4 border-gray-700 border-dashed bg-gray-800/50 flex items-center justify-center cursor-not-allowed"
+        >
+          <span className="text-4xl text-gray-600">?</span>
+        </div>
+      ))}
+    </div>
+  );
+};
+
+// ============================================================================
 // TIER BADGE
 // ============================================================================
-
 const TierBadge = ({ tier }) => {
   if (tier === "none") return null;
 
@@ -173,7 +188,6 @@ const TierBadge = ({ tier }) => {
 // ============================================================================
 // SIGN IN BUTTON
 // ============================================================================
-
 const SignInButton = () => {
   const { user, setWallet, setTier } = usePlayerStore();
   const [isSigningIn, setIsSigningIn] = useState(false);
@@ -190,6 +204,7 @@ const SignInButton = () => {
 
     setIsSigningIn(true);
     setSignInError(null);
+
     try {
       await login();
       const address = await getWalletAddress();
@@ -201,6 +216,7 @@ const SignInButton = () => {
       console.error("Sign in failed:", error);
       setSignInError(error.message || "Sign in failed");
     }
+
     setIsSigningIn(false);
   };
 
@@ -243,7 +259,7 @@ const SignInButton = () => {
         onClick={handleSignIn}
         disabled={isSigningIn}
       >
-        {isSigningIn ? "Signing In..." : "Sign In to Play"}
+        {isSigningIn ? "Signing In..." : "Player Sign In"}
       </button>
       {signInError && (
         <p className="text-red-400 text-sm text-center">{signInError}</p>
@@ -255,7 +271,6 @@ const SignInButton = () => {
 // ============================================================================
 // CONTINUE TO GAME BUTTON
 // ============================================================================
-
 const ContinueToGameButton = () => {
   const { user, selectedPlayer, mode } = usePlayerStore();
   const isUnreal = isUnrealWebview();
@@ -284,11 +299,16 @@ const ContinueToGameButton = () => {
 };
 
 // ============================================================================
-// DOWNLOAD BUTTON
+// DOWNLOAD BUTTON (Only visible after sign-in)
 // ============================================================================
-
 const DownloadButton = () => {
+  const { user } = usePlayerStore();
   const download = usePlayerStore((state) => state.download);
+
+  // Only show after sign-in
+  if (!user.walletAddress) {
+    return null;
+  }
 
   return (
     <button
@@ -303,7 +323,6 @@ const DownloadButton = () => {
 // ============================================================================
 // LOADING SCREEN
 // ============================================================================
-
 const LoadingScreen = () => {
   const loading = usePlayerStore((state) => state.loading);
 
@@ -325,7 +344,6 @@ const LoadingScreen = () => {
 // ============================================================================
 // SIDEBAR
 // ============================================================================
-
 const Sidebar = () => {
   const { mode, selectedPlayer } = usePlayerStore();
 
@@ -338,25 +356,25 @@ const Sidebar = () => {
             <img className="w-12 md:w-16" src="/images/dripp.png" alt="Logo" />
           </a>
           <h1 className="text-lg md:text-xl font-bold text-white">
-            {mode === 'demo' ? 'Select Player' : 'Create Character'}
+            Remilia-Village
           </h1>
         </div>
 
-        {/* Player Select (Mascots) */}
+        {/* Customize Character (Creator - now on top) */}
         <div>
-          <h3 className="text-sm font-medium text-gray-400 mb-2">Characters</h3>
+          <h3 className="text-sm font-medium text-gray-400 mb-2">Customize Character</h3>
+          <Creator />
+        </div>
+
+        {/* Unlocked Characters (Player Select - now on bottom) */}
+        <div>
+          <h3 className="text-sm font-medium text-gray-400 mb-2">Unlocked Characters</h3>
           <PlayerSelect />
           {mode === 'demo' && selectedPlayer && (
             <p className="text-center text-gray-400 text-sm mt-2">
               Selected: <span className="text-white font-medium">{selectedPlayer.name}</span>
             </p>
           )}
-        </div>
-
-        {/* Creator (Trait tabs + options) */}
-        <div>
-          <h3 className="text-sm font-medium text-gray-400 mb-2">Customize</h3>
-          <Creator />
         </div>
 
         {/* Action Buttons */}
@@ -373,7 +391,6 @@ const Sidebar = () => {
 // ============================================================================
 // MAIN EXPORT
 // ============================================================================
-
 export const UI = () => {
   return (
     <>
