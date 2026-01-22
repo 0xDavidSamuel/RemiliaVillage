@@ -299,10 +299,10 @@ const ContinueToGameButton = () => {
 
   const handleContinue = () => {
     if (isUnreal) {
-      const playerId = mode === 'demo' ? String(selectedPlayer?.id) : 'custom';
-      redirectToUnreal(user.walletAddress, playerId);
+      // Pass full player object so Unreal knows the model URL
+      redirectToUnreal(user.walletAddress, selectedPlayer);
     } else {
-      alert(`Ready to play!\n\nWallet: ${user.walletAddress}\nMode: ${mode}\nPlayer: ${mode === 'demo' ? selectedPlayer?.name : 'Custom'}`);
+      alert(`Ready to play!\n\nWallet: ${user.walletAddress}\nMode: ${mode}\nPlayer: ${selectedPlayer?.name || 'None'}\nModel: ${selectedPlayer?.model || 'None'}`);
     }
   };
 

@@ -39,21 +39,39 @@ export function getRedirectUri(): string | null {
   }
 }
 
-// Redirect back to Unreal with wallet and optional player ID
-export function redirectToUnreal(walletAddress: string, playerId?: string): void {
+// Player type for redirect
+interface RedirectPlayer {
+  id: number;
+  name: string;
+  model: string;
+}
+
+// Redirect back to Unreal with wallet and player data
+export function redirectToUnreal(walletAddress: string, player?: RedirectPlayer | null, tokenId?: string): void {
   const redirectUri = getRedirectUri();
   if (!redirectUri) {
     console.error("[redirect] No redirect URI found");
     return;
   }
+
   let url = `${redirectUri}?wallet=${walletAddress}`;
-  if (playerId) {
-    url += `&player=${playerId}`;
+
+  if (tokenId) {
+    // NFT character - pass tokenId, Unreal fetches from chain
+    url += `&tokenId=${tokenId}`;
+  } else if (player) {
+    // Demo character - pass model URL directly
+    url += `&playerId=${player.id}`;
+    url += `&playerName=${encodeURIComponent(player.name)}`;
+    url += `&model=${encodeURIComponent(player.model)}`;
   }
+
   // Clear session data
   try {
     sessionStorage.removeItem(UNREAL_SESSION_KEY);
     sessionStorage.removeItem('miladycity_redirect_uri');
   } catch (e) {}
+
+  console.log("[redirect] Redirecting to Unreal:", url);
   window.location.href = url;
 }
