@@ -43,17 +43,21 @@ export function Player(props) {
     setDownload(download);
   }, [setDownload]);
 
-  // Play idle animation
-  useEffect(() => {
-    actions["mixamo.com"]?.play();
-  }, [actions]);
+// Play idle animation
+useEffect(() => {
+  const actionNames = Object.keys(actions);
+  if (actionNames.length > 0 && actions[actionNames[0]]) {
+    actions[actionNames[0]].play();
+  }
+}, [actions]);
 
-  // Debug
-  useEffect(() => {
-    console.log("[Player] Mode:", mode);
-    console.log("[Player] Model:", modelPath);
-    console.log("[Player] Nodes:", Object.keys(nodes));
-  }, [nodes, mode, modelPath]);
+// Debug customization
+useEffect(() => {
+  console.log("[Player] Customization:", customization);
+  Object.entries(customization).forEach(([name, data]) => {
+    console.log(`[Player] ${name}:`, data.asset?.model);
+  });
+}, [customization]);
 
   // Find skinned meshes
   const skinnedMeshes = Object.values(nodes).filter((n) => n.isSkinnedMesh);
@@ -72,8 +76,16 @@ export function Player(props) {
     return name.includes('body') || name.includes('skin') || name.includes('mesh10');
   };
 
+  // Find root bone (supports both UE and Mixamo naming)
+  const rootBone = nodes.pelvis || nodes.mixamorigHips || nodes['mixamorig:Hips'];
+
+  if (!rootBone) {
+    console.warn("[Player] No root bone found");
+    return null;
+  }
+
   return (
-    <group {...props}>
+    <group {...props} scale={0.01}>
       <group ref={group} dispose={null}>
         <group name="Scene">
           <group name="Armature" scale={0.01}>
@@ -104,7 +116,7 @@ export function Player(props) {
               );
             })}
             
-            <primitive object={nodes.mixamorigHips} />
+            <primitive object={rootBone} />
           </group>
         </group>
       </group>
