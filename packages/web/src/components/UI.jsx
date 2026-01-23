@@ -167,7 +167,7 @@ const TierBadge = ({ tier }) => {
   };
 
   const labels = {
-    whitelist: "Whitelist",
+    whitelist: "Live",
     presale: "Pre-Sale",
   };
 
@@ -252,7 +252,7 @@ const SignInButton = () => {
         onClick={handleSignIn}
         disabled={isSigningIn}
       >
-        {isSigningIn ? "Logging In..." : "Player Log In"}
+        {isSigningIn ? "Signing In..." : "Sign In"}
       </button>
       {signInError && (
         <p className="text-red-400 text-sm text-center">{signInError}</p>
@@ -378,7 +378,10 @@ const Sidebar = () => {
           </h1>
         </div>
 
-        {/* Customize Character (Creator - now on top) */}
+        {/* Player Sign In (moved to top) */}
+        <SignInButton />
+
+        {/* Customize Character (Creator) */}
         <div>
           <h3 className="text-sm font-medium text-gray-400 mb-2">Customize Character</h3>
           <Creator />
@@ -398,9 +401,8 @@ const Sidebar = () => {
           )}
         </div>
 
-        {/* Action Buttons */}
+        {/* Action Buttons (removed SignInButton from here) */}
         <div className="flex flex-col gap-3 mt-auto">
-          <SignInButton />
           <ContinueToGameButton />
           <DownloadButton />
         </div>
