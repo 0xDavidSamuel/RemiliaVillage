@@ -23,7 +23,8 @@ public class MiladyCity : ModuleRules
           "HTTP",
           "Json",
           "JsonUtilities",
-          "WebBrowser"
+          "WebBrowser",
+          "glTFRuntime"
        });
 
        PrivateDependencyModuleNames.AddRange(new string[] { });
