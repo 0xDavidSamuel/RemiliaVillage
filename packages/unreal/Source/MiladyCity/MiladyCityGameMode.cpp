@@ -1,4 +1,4 @@
-// Copyright Epic Games, Inc. All Rights Reserved.
+// MiladyCityGameMode.cpp
 
 #include "MiladyCityGameMode.h"
 #include "WebService.h"
@@ -16,9 +16,12 @@ void AMiladyCityGameMode::BeginPlay()
 {
     Super::BeginPlay();
 
+    UE_LOG(LogTemp, Warning, TEXT("[MiladyCity] ========== GAMEMODE BEGINPLAY =========="));
+
     // Spawn the character loader
     FActorSpawnParameters SpawnParams;
     CharacterLoader = GetWorld()->SpawnActor<AGLBCharacterLoader>(AGLBCharacterLoader::StaticClass(), SpawnParams);
+
     if (CharacterLoader)
     {
         CharacterLoader->OnCharacterLoaded.AddDynamic(this, &AMiladyCityGameMode::OnCharacterLoaded);
@@ -33,7 +36,7 @@ void AMiladyCityGameMode::BeginPlay()
         {
             // Listen for auth result
             Auth->OnAuthComplete.AddDynamic(this, &AMiladyCityGameMode::OnAuthComplete);
-            
+
             // Start login
             UE_LOG(LogTemp, Warning, TEXT("[MiladyCity] Starting login..."));
             Auth->Login();
@@ -46,7 +49,7 @@ void AMiladyCityGameMode::OnAuthComplete(bool bSuccess, const FString& WalletAdd
     if (bSuccess)
     {
         UE_LOG(LogTemp, Warning, TEXT("[MiladyCity] LOGIN SUCCESS! Wallet: %s"), *WalletAddress);
-        
+
         if (PlayerData.IsNFT())
         {
             UE_LOG(LogTemp, Warning, TEXT("[MiladyCity] NFT Character - TokenId: %s"), *PlayerData.TokenId);
@@ -56,18 +59,18 @@ void AMiladyCityGameMode::OnAuthComplete(bool bSuccess, const FString& WalletAdd
         {
             UE_LOG(LogTemp, Warning, TEXT("[MiladyCity] Demo Character - ID: %d, Name: %s"), PlayerData.PlayerId, *PlayerData.PlayerName);
             UE_LOG(LogTemp, Warning, TEXT("[MiladyCity] Model URL: %s"), *PlayerData.ModelURL);
-            
+
             // Build full URL and load character
             FString FullURL = BaseURL + PlayerData.ModelURL;
             UE_LOG(LogTemp, Warning, TEXT("[MiladyCity] Loading character from: %s"), *FullURL);
-            
+
             if (CharacterLoader)
             {
                 // Spawn at player start location
                 AActor* PlayerStart = FindPlayerStart(nullptr);
                 FVector SpawnLocation = PlayerStart ? PlayerStart->GetActorLocation() : FVector(0, 0, 100);
                 FRotator SpawnRotation = PlayerStart ? PlayerStart->GetActorRotation() : FRotator::ZeroRotator;
-                
+
                 CharacterLoader->LoadCharacterFromURL(FullURL, SpawnLocation, SpawnRotation);
             }
         }
@@ -87,25 +90,18 @@ void AMiladyCityGameMode::OnCharacterLoaded(AActor* SpawnedCharacter)
     if (SpawnedCharacter)
     {
         UE_LOG(LogTemp, Warning, TEXT("[MiladyCity] Character loaded and spawned!"));
-        
-        // Move it in front of camera so we can see it
+
+        // Possess the character
         APlayerController* PC = GetWorld()->GetFirstPlayerController();
         if (PC)
         {
-            FVector CamLoc;
-            FRotator CamRot;
-            PC->GetPlayerViewPoint(CamLoc, CamRot);
-            
-            // Place 500 units in front of camera
-            FVector SpawnLoc = CamLoc + CamRot.Vector() * 500.0f;
-            SpawnLoc.Z = 0; // Ground level
-            
-            SpawnedCharacter->SetActorLocation(SpawnLoc);
-            SpawnedCharacter->SetActorRotation(FRotator(0, CamRot.Yaw + 180, 0)); // Face camera
+            APawn* CharacterPawn = Cast<APawn>(SpawnedCharacter);
+            if (CharacterPawn)
+            {
+                PC->Possess(CharacterPawn);
+                UE_LOG(LogTemp, Warning, TEXT("[MiladyCity] Player now possessing GLB character!"));
+            }
         }
-        
-        // Scale to reasonable size (adjust if needed)
-        SpawnedCharacter->SetActorScale3D(FVector(1.0f, 1.0f, 1.0f));
     }
     else
     {
