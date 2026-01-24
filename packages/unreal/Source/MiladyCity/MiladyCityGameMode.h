@@ -7,6 +7,8 @@
 #include "AuthService.h"
 #include "MiladyCityGameMode.generated.h"
 
+class AGLBCharacterLoader;
+
 UCLASS(Blueprintable)
 class MILADYCITY_API AMiladyCityGameMode : public AGameModeBase
 {
@@ -20,4 +22,13 @@ protected:
 
 	UFUNCTION()
 	void OnAuthComplete(bool bSuccess, const FString& WalletAddress, const FPlayerData& PlayerData);
+
+	UFUNCTION()
+	void OnCharacterLoaded(AActor* SpawnedCharacter);
+
+private:
+	UPROPERTY()
+	AGLBCharacterLoader* CharacterLoader;
+
+	FString BaseURL = TEXT("https://remilia-village.vercel.app");
 };
