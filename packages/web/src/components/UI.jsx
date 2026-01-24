@@ -167,7 +167,7 @@ const TierBadge = ({ tier }) => {
   };
 
   const labels = {
-    whitelist: "Live",
+    whitelist: "Live-WL",
     presale: "Pre-Sale",
   };
 
